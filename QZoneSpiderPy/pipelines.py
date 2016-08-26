@@ -15,9 +15,9 @@ class QzonespiderpyPipeline(object):
 class tiebaPipeline(object):
 
     def __init__(self):
-        self.file = codecs.open('tieba.json', 'wb', encoding='utf-8')
+        self.file = codecs.open('tieba.json', 'w',encoding='utf-8')
 
     def process_item(self, item, spider):
-        line = json.dumps(dict(item)) + "\n"
+        line = json.dumps(dict(item),ensure_ascii=False) + "\n" #这里如果不加ensure_ascii=False，json编码会出问题
         self.file.write(line)
         return item

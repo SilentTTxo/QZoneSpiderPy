@@ -21,3 +21,4 @@ class TieBaItem(scrapy.Item):
 	title = scrapy.Field()
 	contents = scrapy.Field()
 	link = scrapy.Field()
+	date = scrapy.Field()

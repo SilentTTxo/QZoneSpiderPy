@@ -7,16 +7,23 @@ class TiebaSpider(scrapy.Spider):
     name = "tieba"
     allowed_domains = ["baidu.com"]
     start_urls = (
-        'http://tieba.baidu.com/f?ie=utf-8&kw=%E6%B9%96%E5%8D%97%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%A6&fr=search',
+        'http://tieba.baidu.com/f?kw=湖南科技大学&ie=utf-8&pn=0',
     )
 
     def parse(self, response):
-        items = []
-        for sel in response.xpath('//ul[@id="thread_list"]/li'):
-        	item = TieBaItem()
-        	item['userid'] = sel.xpath('//span[@class="frs-author-name-wrap"]/a/text()').extract()
-        	item['link'] = sel.xpath('//a[@class="j_th_tit"]/@href').extract()
-        	item['title'] = sel.xpath('//a[@class="j_th_tit"]/text()').extract()
-        	item['contents'] = sel.xpath('//div[@class="threadlist_abs threadlist_abs_onlyline "]/text()').extract()
-        	items.append(item)
-        return items
+        for sel in response.css('[class=" j_thread_list clearfix"]'):
+            if len(sel.css('a.j_th_tit::text').extract()) != 1:
+                continue
+            item = TieBaItem()
+            item['userid'] = sel.css('.frs-author-name-wrap>a::text').extract()
+            item['link'] = sel.css('a.j_th_tit::attr(href)').extract()
+            item['title'] = sel.css('a.j_th_tit::text').extract()
+            item['contents'] = sel.css('div.threadlist_abs::text').extract()
+            item['date'] = sel.css('.threadlist_reply_date::text').extract()
+            yield item
+
+        for url in response.css('.pagination-item::attr(href)').extract():
+            if url[-3:] != "-1":
+                yield scrapy.Request(url,callback=self.parse)
+            else:
+                return
